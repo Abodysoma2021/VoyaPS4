@@ -22,6 +22,11 @@ disabled for this user." Repository Actions permissions are enabled, so this is 
 account restriction. The initial release uses the verified local builder and release
 script. The committed workflow can repeat these checks when Actions is available.
 
+Published release: https://github.com/Abodysoma2021/VoyaPS4/releases/tag/v0.1.0
+The public `latest/download/VoyaPS4.pkg` URL was downloaded again through the host
+transfer engine and matched the published updater manifest: 6,619,136 bytes,
+SHA-256 `c50698573ba0b668188a4c9befefa9abe484edf74b19959a3ae63402933b111d`.
+
 **Not verified:** physical PS4 launch, IME/controller behavior, native SceHttp TLS and
 timeouts, native installation, and the full on-console update cycle on firmware 13.52.
 Use [the hardware checklist](CONSOLE-TESTING.md) to establish compatibility.
