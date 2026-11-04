@@ -74,4 +74,17 @@ The repaired native candidate compiled and its package digest/signature and extr
 runtime-layout checks passed. Symbol inspection confirms neither `lstat` nor
 `fstatat` remains linked; the supported descriptor `fstat` is linked instead.
 
-Console first-frame, downloads, native installation and update acceptance remain pending.
+The console reached `first_frame` and the user confirmed the interface appeared.
+Starting Apollo then crashed; reopening with its saved queued job reproduced it.
+The full trace records SIGSEGV at `0x423dbe`, a `call validate_item` immediately after
+`transfer` reserves 0x20258 bytes of stack. The fault address is exactly `rsp - 8`,
+the return-address write into unmapped stack memory. This establishes a separate
+worker-stack overflow before network I/O in the transfer.
+
+A regression downloads and hashes a 256 KiB synthetic PKG on a pthread explicitly
+limited to 64 KiB. Before the buffer repair it terminated with SIGBUS on the Mac.
+The transfer, file-hash and update-copy buffers now use bounded 128 KiB heap storage.
+The 64 KiB test and all existing host checks pass after the repair. The combined
+native candidate builds and passes package digest/signature and extracted-layout checks.
+Disassembly confirms the transfer and file-hash stack reservations are below 16 KiB.
+Console download, native installation and update acceptance remain pending.

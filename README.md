@@ -7,7 +7,8 @@ your queue across relaunches.
 **Firmware 13.50 / GoldHEN validation in progress.** Version 0.1.0 installed but failed
 at launch; inspection found required OpenOrbis module stubs missing. Version 0.1.1
 includes them, but console testing exposed a subsequent unsupported storage API
-and CE-34878-0. The 0.1.2 candidate replaces that API and awaits console launch testing.
+and CE-34878-0. The 0.1.2 storage repair reached the interface; a separate worker-stack
+overflow appeared on download. The combined repair awaits download testing.
 Native package builds and host transfer tests pass. This is
 an independent project with an original interface, not an affiliated Gamebato client.
 

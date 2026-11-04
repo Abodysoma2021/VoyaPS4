@@ -7,6 +7,8 @@
   opens. The unsupported call prevented startup after controller initialization.
 - Read local file lengths with 64-bit seek while retaining regular-file and symlink checks.
 - Format kernel diagnostics before passing them to the platform's text export.
+- Keep transfer, file hashing and update-copy buffers off small PS4 worker stacks.
+  A console trace identified a stack fault at the first call inside `transfer`.
 
 ### Changed
 - Send startup milestones and the original error directly to the console's kernel log,
@@ -15,8 +17,8 @@
   which the firmware 13.50 crash trace identifies as a SIGSYS failure.
 
 ### Status
-- Candidate awaiting console launch verification. The first diagnostic's boot log
-  isolated the failure to the download-directory check.
+- The storage repair reached the interface on the console. Starting/resuming Apollo
+  then exposed a separate worker-stack overflow; the combined repair awaits testing.
 
 ## 0.1.1 — 2026-11-04
 

@@ -12,5 +12,6 @@
 - [x] Corrected 0.1.1 package extracted, checked, published and uploaded over FTP.
 - [x] Isolate subsequent startup error from console boot log and linked SDK disassembly.
 - [x] Reproduce unsupported `lstat` failure and pass storage regression after repair.
-- [ ] Console launch verified by the firmware 13.50 tester and local boot log.
+- [x] Console first frame verified by the firmware 13.50 tester and local boot log.
+- [x] Capture separate download SIGSEGV and reproduce it on a 64 KiB worker stack.
 - [ ] Remaining download, installer and updater hardware checklist completed.

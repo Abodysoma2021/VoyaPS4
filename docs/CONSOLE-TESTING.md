@@ -5,7 +5,10 @@ message and no error code. The target firmware was corrected from 13.52 to **13.
 Version 0.1.1 added the missing mandatory module stubs, then failed after controller
 initialization with CE-34878-0. The first 0.1.2 diagnostic stayed on a black screen;
 its boot log reported `Download folder is not a directory`. The linked SDK implements
-`lstat` via an unsupported `fstatat` stub. The repaired 0.1.2 candidate awaits launch testing.
+`lstat` via an unsupported `fstatat` stub. The storage repair reached the interface.
+Starting Apollo and reopening with that queued download then caused SIGSEGV at the
+first call inside `transfer`, after reserving a 128 KiB stack buffer. The combined
+repair moves streaming buffers to the heap; download acceptance remains pending.
 Record the exact loader name/version, console model and network type when testing.
 
 - Install VoyaPS4.pkg using an existing working homebrew package installer.

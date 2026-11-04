@@ -139,9 +139,9 @@ std::string stage_update(const Job& job,const std::string& path) {
     if(!output) {close(fd);throw Error("Cannot stage update");}
     std::unique_ptr<FILE,decltype(&fclose)> input(fopen(path.c_str(),"rb"),fclose);
     if(!input) throw Error("Cannot read verified update");
-    char buffer[128*1024];size_t count;
-    while((count=fread(buffer,1,sizeof(buffer),input.get())))
-        if(fwrite(buffer,1,count,output.get())!=count) throw Error("Cannot write staged update; check free space");
+    std::vector<char> buffer(128*1024);size_t count;
+    while((count=fread(buffer.data(),1,buffer.size(),input.get())))
+        if(fwrite(buffer.data(),1,count,output.get())!=count) throw Error("Cannot write staged update; check free space");
     if(ferror(input.get()) || fflush(output.get()) || fsync(fileno(output.get()))) throw Error("Cannot save staged update");
     output.reset();
     if(file_sha256(temporary)!=job.item.sha256 || rename(temporary.c_str(),target.c_str()))

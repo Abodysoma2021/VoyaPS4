@@ -134,14 +134,15 @@ Outcome transfer(Http& http, const Item& item, const std::string& directory,
                                  {"validator",fresh},{"total",total}}.dump());
         uint64_t done=offset,received=0,checkpoint=offset;
         progress({done,total,restarted,false});
-        uint8_t buffer[128*1024];
+        // PS4 worker stacks cannot hold a 128 KiB automatic buffer.
+        std::vector<uint8_t> buffer(128*1024);
         while(!stop()) {
-            size_t count=response->read(buffer,sizeof(buffer));
+            size_t count=response->read(buffer.data(),buffer.size());
             if(!count) break;
             if(done+count>max_package_size || (total && done+count>total) ||
                (response_size && received+count>response_size))
                 throw Error("Server sent more bytes than expected");
-            if(fwrite(buffer,1,count,file.get())!=count) throw Error("Storage write failed; check free space");
+            if(fwrite(buffer.data(),1,count,file.get())!=count) throw Error("Storage write failed; check free space");
             done+=count; received+=count;
             if(done-checkpoint>=4*1024*1024) {
                 if(fflush(file.get()) || fsync(fileno(file.get()))) throw Error("Cannot checkpoint package to storage");

@@ -77,11 +77,11 @@ std::string file_sha256(const std::string& path, const std::function<bool()>& st
     std::unique_ptr<FILE,decltype(&fclose)> file(fopen(path.c_str(),"rb"),fclose);
     if(!file) throw Error("Cannot open file for integrity check");
     Digest digest;
-    uint8_t buffer[128*1024];
+    std::vector<uint8_t> buffer(128*1024);
     size_t count;
-    while((count=fread(buffer,1,sizeof(buffer),file.get()))) {
+    while((count=fread(buffer.data(),1,buffer.size(),file.get()))) {
         if(stop && stop()) throw Error("Verification paused",true);
-        digest.add(buffer,count);
+        digest.add(buffer.data(),count);
     }
     if(ferror(file.get())) throw Error("Cannot read file for integrity check");
     return digest.finish();
