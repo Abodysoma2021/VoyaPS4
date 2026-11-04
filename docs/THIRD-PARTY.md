@@ -2,7 +2,8 @@
 
 VoyaPS4 is GPL-3.0-or-later; see LICENSE. SDK API references and packaging conventions
 come from OpenOrbis. The compiled application links OpenOrbis's libc/libc++ and system
-import stubs. The SDK supplies `right.sprx` during packaging; no Sony SDK is used.
+import stubs. The SDK supplies `right.sprx` and the required empty `libc.prx` /
+`libSceFios2.prx` module stubs during packaging; no Sony SDK is used.
 
 - nlohmann/json 3.11.3, MIT: `vendor/json.hpp`, `vendor/json.LICENSE`.
   https://github.com/nlohmann/json/tree/v3.11.3

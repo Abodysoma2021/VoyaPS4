@@ -10,12 +10,35 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <fcntl.h>
 #include <future>
+#include <sys/stat.h>
 #include <unistd.h>
 
 using namespace voya;
 namespace {
+// Latest launch only, bounded to startup milestones; no URLs, catalog data or credentials.
+void boot_trace(const char* stage,const char* message=nullptr,bool reset=false) {
+    static const long started=static_cast<long>(time(nullptr));
+    mkdir("/data/voyaps4",0700);
+    int fd=open("/data/voyaps4/boot.log",O_WRONLY|O_CREAT|O_NOFOLLOW|(reset?O_TRUNC:O_APPEND),0600);
+    if(fd<0) return;
+    FILE* output=fdopen(fd,"a");
+    if(!output) {close(fd);return;}
+    fprintf(output,"{\"event\":\"ps4_startup\",\"entry_point\":\"ps4_app\",\"run_id\":\"%ld-%ld\",\"version\":\"%s\",\"stage\":\"%s\"",
+            started,static_cast<long>(getpid()),VOYA_VERSION,stage);
+    if(message) {
+        fputs(",\"error\":\"",output);
+        for(size_t i=0;message[i] && i<400;++i) {
+            unsigned char c=message[i];
+            if(c=='"' || c=='\\') fputc('\\',output);
+            fputc(c>=32 && c<127?c:' ',output);
+        }
+        fputc('"',output);
+    }
+    fputs("}\n",output);fflush(output);fsync(fd);fclose(output);
+}
 void require(int code,const char* operation) {
     if(code>=0) return;
     char text[180];snprintf(text,sizeof(text),"%s (0x%08x)",operation,unsigned(code));throw Error(text);
@@ -133,19 +156,24 @@ void install_package(Library& library,const Job& job) {
 }
 int main() {
     setvbuf(stdout,nullptr,_IONBF,0);
+    boot_trace("entered_main",nullptr,true);
     try {
-        Display display;Canvas canvas("/app0/assets/fonts/SpaceGrotesk.ttf");
+        Display display;boot_trace("display_ready");
+        Canvas canvas("/app0/assets/fonts/SpaceGrotesk.ttf");boot_trace("font_ready");
         View view;Keyboard keyboard;
         require(scePadInit(),"Cannot initialize controller");
         OrbisUserServiceInitializeParams params{};params.priority=ORBIS_KERNEL_PRIO_FIFO_LOWEST;
         sceUserServiceInitialize(&params);
         int user=-1;require(sceUserServiceGetInitialUser(&user),"Cannot get active user");
         int pad=scePadOpen(user,0,0,nullptr);require(pad,"Cannot open controller");
+        boot_trace("controller_ready");
         make_directory("/data/voyaps4");
         auto catalog=parse_catalog(read_text("/app0/assets/catalog.json"));
         Library library("/data/voyaps4",catalog,make_http());
+        boot_trace("library_ready");
         uint32_t previous=0;std::string confirm_id;
         std::future<void> install_task;
+        bool first_frame=true;
         for(;;) {
             auto snapshot=library.snapshot();
             OrbisPadData pad_data{};
@@ -211,8 +239,10 @@ int main() {
             canvas.text("L1 / R1   Browse",1000,56,19,0xffa1b3cd,220);
             if(!connected) canvas.text("Reconnect your controller",840,94,22,0xffffb276,390);
             display.flip();
+            if(first_frame) {boot_trace("first_frame");first_frame=false;}
         }
     } catch(const std::exception& e) {
+        boot_trace("failed",e.what());
         printf("VoyaPS4 startup failed: %s\n",e.what());
         return 1;
     }

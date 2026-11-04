@@ -4,8 +4,10 @@ A native PS4 homebrew download manager that keeps your place when your connectio
 drops. Add a direct package URL, download onto the console, pause or resume, and keep
 your queue across relaunches.
 
-**Initial hardware-unverified release.** Native package builds and host transfer
-tests pass; firmware 13.52 runtime support still needs a real-console test. This is
+**Firmware 13.50 / GoldHEN validation in progress.** Version 0.1.0 installed but failed
+at launch; inspection found required OpenOrbis module stubs missing. Version 0.1.1
+includes them and checks the contents of the final extracted package. Launch verification
+is still pending. Native package builds and host transfer tests pass. This is
 an independent project with an original interface, not an affiliated Gamebato client.
 
 ![VoyaPS4 library preview](docs/screenshots/library.png)
@@ -71,6 +73,8 @@ resume validators, completed `.pkg` files and optional catalog configuration.
 There is a 100-job queue limit; this initial version keeps completed records and
 packages. Copy/archive your data before maintenance; there is no in-app deletion.
 Invalid queue metadata is preserved as `queue.recovery.json`.
+Startup milestones and failures are recorded locally in `boot.log`, replaced on each
+launch. No catalog URLs or credentials are logged. Read this file through FTP if startup fails.
 
 ## Updates
 

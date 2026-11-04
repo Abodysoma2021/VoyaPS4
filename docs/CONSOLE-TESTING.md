@@ -1,6 +1,8 @@
-# Firmware 13.52 acceptance checklist
+# Firmware 13.50 / GoldHEN acceptance checklist
 
-Status: **not run on a physical PS4**. Build success is not proof of runtime support.
+Status: 0.1.0 installed on the user's PS4 but was rejected at launch with a corrupt-data
+message and no error code. The target firmware was corrected from 13.52 to **13.50**.
+Version 0.1.1 adds the missing mandatory module stubs; launch verification is pending.
 Record the exact loader name/version, console model and network type when testing.
 
 - Install VoyaPS4.pkg using an existing working homebrew package installer.
@@ -19,5 +21,7 @@ Record the exact loader name/version, console model and network type when testin
   `/data/pkg/VoyaPS4-update.pkg`. Relaunch and confirm new version and preserved queue.
 - Keep the app open while downloading. Background/rest-mode transfers are outside this version.
 
-If startup exits, record loader logs/stdout (VoyaPS4 prints the failing operation).
+If startup exits, read `/data/voyaps4/boot.log` over FTP. The latest-launch log records
+entered_main, display_ready, font_ready, controller_ready, library_ready and first_frame,
+or failed with the operation/error. A rejected package may never reach entered_main.
 Avoid sharing direct URLs containing private access tokens in public bug reports.

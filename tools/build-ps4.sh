@@ -7,7 +7,7 @@ linker="${LD:-ld.lld}"
 version="$(cat VERSION)"
 content_id="IV0000-VOYA00001_00-VOYAPS4APP000001"
 out="$PWD/build/ps4"
-mkdir -p "$out/objects" "$out/package/sce_sys/about" "$out/package/assets/fonts" dist
+mkdir -p "$out/objects" "$out/package/sce_sys/about" "$out/package/sce_module" "$out/package/assets/fonts" dist
 flags=(--target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -std=c++17 -D_DEFAULT_SOURCE -O2
     -Wall -Wextra -Werror -Wno-unused-command-line-argument
     -isysroot "$sdk" -isystem "$sdk/include" -isystem "$sdk/include/c++/v1"
@@ -32,6 +32,9 @@ cp docs/THIRD-PARTY.md "$out/package/assets/THIRD-PARTY.txt"
 cp vendor/{json.LICENSE,stb.LICENSE} "$out/package/assets/"
 cp assets/icon0.png "$out/package/sce_sys/icon0.png"
 cp "$sdk/samples/hello_world/sce_sys/about/right.sprx" "$out/package/sce_sys/about/right.sprx"
+# Required loader stubs, even though the application's musl is statically linked.
+# OpenOrbis src/README.md: the libc and libSceFios2 module stubs are needed in packages.
+cp "$sdk/samples/hello_world/sce_module/"{libc,libSceFios2}.prx "$out/package/sce_module/"
 pkgtool="$sdk/bin/linux/PkgTool.Core"
 export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 "$pkgtool" sfo_new "$out/package/sce_sys/param.sfo"
@@ -51,10 +54,31 @@ set_sfo TITLE Utf8 128 VoyaPS4
 set_sfo TITLE_ID Utf8 12 VOYA00001
 set_sfo VERSION Utf8 8 "$app_ver"
 cd "$out/package"
-files="eboot.bin sce_sys/param.sfo sce_sys/icon0.png sce_sys/about/right.sprx assets/catalog.json assets/fonts/SpaceGrotesk.ttf assets/fonts/OFL.txt assets/LICENSE.txt assets/THIRD-PARTY.txt assets/json.LICENSE assets/stb.LICENSE"
+files="eboot.bin sce_module/libc.prx sce_module/libSceFios2.prx sce_sys/param.sfo sce_sys/icon0.png sce_sys/about/right.sprx assets/catalog.json assets/fonts/SpaceGrotesk.ttf assets/fonts/OFL.txt assets/LICENSE.txt assets/THIRD-PARTY.txt assets/json.LICENSE assets/stb.LICENSE"
 "$sdk/bin/linux/create-gp4" -out "$out/package/package.gp4" --content-id="$content_id" --files "$files"
+python3 "$OLDPWD/tools/validate-package.py" "$out/package" --gp4 "$out/package/package.gp4"
 "$pkgtool" pkg_build "$out/package/package.gp4" "$out"
 cp "$out/$content_id.pkg" "$OLDPWD/dist/VoyaPS4.pkg"
-"$pkgtool" pkg_validate "$OLDPWD/dist/VoyaPS4.pkg"
+"$pkgtool" pkg_validate "$OLDPWD/dist/VoyaPS4.pkg" > "$out/pkg-validation.log"
+cat "$out/pkg-validation.log"
+inspection="$(mktemp -d "$out/extracted.XXXXXX")"
+"$pkgtool" pkg_extract "$OLDPWD/dist/VoyaPS4.pkg" "$inspection"
+# PARAM_SFO and ICON0 are SC entries, not files inside the inner PFS.
+# PkgTool's extractentry takes the displayed entry index, not its format-level ID.
+python3 - "$pkgtool" "$OLDPWD/dist/VoyaPS4.pkg" "$inspection/uroot" <<'PY'
+from pathlib import Path
+import subprocess
+import sys
+tool, package, root = sys.argv[1:]
+listing = subprocess.check_output([tool, 'pkg_listentries', package], text=True)
+for entry, destination in [('PARAM_SFO', 'sce_sys/param.sfo'), ('ICON0_PNG', 'sce_sys/icon0.png')]:
+    matches = [line.split()[3] for line in listing.splitlines() if line.split() and line.split()[-1] == entry]
+    if len(matches) != 1:
+        raise SystemExit('Required SC entry missing: ' + entry)
+    output = Path(root) / destination
+    output.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run([tool, 'pkg_extractentry', package, matches[0], str(output)], check=True)
+PY
+python3 "$OLDPWD/tools/validate-package.py" "$inspection/uroot" --validation-log "$out/pkg-validation.log"
 cd "$OLDPWD"
 python3 tools/release-manifest.py

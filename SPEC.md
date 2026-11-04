@@ -2,6 +2,7 @@
 
 Native PS4 homebrew download manager for direct URLs and user-controlled catalogs.
 No commercial game catalog, DRM bypass, or proprietary SDK. Use OpenOrbis v0.5.4.
+Actual user console: firmware 13.50 with GoldHEN (corrected from the initial 13.52 report).
 
 ## Requirements
 
@@ -50,4 +51,4 @@ separate authorization. Initial source and release publication are already autho
 Foreground downloads: keep VoyaPS4 open and PS4 awake. Rest-mode/background execution
 is not promised. Retry after a temporary outage; resume after relaunch. Servers must
 support byte ranges for efficient resume. Unknown source authenticity is shown clearly.
-Native network/installer behavior on firmware 13.52 remains a hardware acceptance test.
+Native network/installer behavior on firmware 13.50 remains a hardware acceptance test.

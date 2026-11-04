@@ -163,7 +163,7 @@ void draw_ui(Canvas& c,const Snapshot& s,const View& v) {
             "SHA-256 verification when the publisher provides a checksum.",
             "Native PS4 homebrew built with the open-source OpenOrbis SDK.",
             "Downloads pause when the app closes. Relaunch to resume.",
-            "Firmware 13.52 hardware compatibility is awaiting verification.",
+            "Firmware 13.50 launch verification is in progress.",
             "Source: github.com/Abodysoma2021/VoyaPS4"};
         for(int i=0;i<7;++i) c.text(lines[i],left,224+i*46,22,muted,width);
     }

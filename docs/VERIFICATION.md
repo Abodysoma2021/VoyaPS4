@@ -30,3 +30,23 @@ SHA-256 `c50698573ba0b668188a4c9befefa9abe484edf74b19959a3ae63402933b111d`.
 **Not verified:** physical PS4 launch, IME/controller behavior, native SceHttp TLS and
 timeouts, native installation, and the full on-console update cycle on firmware 13.52.
 Use [the hardware checklist](CONSOLE-TESTING.md) to establish compatibility.
+
+## 0.1.1 launch repair — 2026-11-04
+
+The user corrected the console firmware to **13.50 / GoldHEN**. Version 0.1.0 was
+installed through GoldHEN from the FTP-uploaded PKG, but launching it produced a
+corrupt-data/reinstall message without an error code. The installed title exists.
+
+Inspection found both mandatory OpenOrbis stubs absent: `sce_module/libc.prx` and
+`sce_module/libSceFios2.prx`. The new validator reproduced this defect against the
+original GP4 and the extracted original package. OpenOrbis's own `src/README.md`
+documents that these modules are required in packages.
+
+The corrected native build includes the SDK stubs. The build now validates the GP4,
+builds and checks PKG digests/signatures, extracts the actual final PKG, extracts its
+PARAM_SFO and ICON0 SC entries, and validates the resulting complete runtime layout.
+Both pre-package and post-extraction checks passed for the 0.1.1 candidate.
+
+All 18 transfer/queue integration tests, core assertions and six new package-layout
+tests pass. Startup milestones are recorded in `/data/voyaps4/boot.log` if the console
+loader reaches `main`. On-console launch and the remaining runtime tests are pending.

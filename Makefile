@@ -11,6 +11,7 @@ build/test-driver: $(CORE) src/platform/http_curl.cpp tests/driver.cpp src/core.
 test: host
 	./build/test-driver
 	python3 tests/integration.py
+	python3 tests/package_layout.py
 ps4:
 	bash tools/build-ps4.sh
 preview:

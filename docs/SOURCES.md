@@ -4,6 +4,9 @@
 - Native network ABI: SDK `include/orbis/Http.h`, `Ssl.h`, `Net.h`, and
   `samples/net_http/net_http/main.c`. VoyaPS4 deliberately preserves TLS validation;
   it does not use the sample's certificate-bypass callback.
+- Required package modules: https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/blob/master/src/README.md#module-stubs
+  OpenOrbis explicitly requires the empty libc and libSceFios2 modules in packages.
+  The original package omitted them despite passing PKG digest/signature validation.
 - Video, input, IME and installation ABI: SDK `VideoOut.h`, `Pad.h`, `UserService.h`,
   `ImeDialog.h`, `_types/ime_dialog.h`, `AppInstUtil.h`, `_types/sysmodule.h`.
 - Byte ranges and If-Range semantics: https://www.rfc-editor.org/rfc/rfc9110#section-14

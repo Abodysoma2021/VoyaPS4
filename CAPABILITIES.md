@@ -9,4 +9,5 @@
 
 Build order: transfer → library → console → releases.
 The user authorized building and publishing the app in this chat. Console firmware is 13.52;
-the loader and hardware compatibility still need console verification.
+the user subsequently corrected it to 13.50 and confirmed GoldHEN. Version 0.1.0
+installed but failed to launch; corrected runtime packaging needs console verification.

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.1 — 2026-11-04
+
+### Fixed
+- Include OpenOrbis's required libc.prx and libSceFios2.prx loader stubs; 0.1.0 omitted them.
+- Check runtime completeness in both the GP4 manifest and the extracted final PKG.
+- Reject failed or missing package-validation results even if the packaging CLI exits zero.
+
+### Added
+- Local latest-launch milestones and startup errors in `/data/voyaps4/boot.log`.
+
+### Compatibility
+- User clarified the actual target is firmware 13.50 with GoldHEN.
+- Version 0.1.0 installed but was rejected at launch. Version 0.1.1 requires on-console verification.
+
 ## 0.1.0 — 2026-11-04
 
 ### Added

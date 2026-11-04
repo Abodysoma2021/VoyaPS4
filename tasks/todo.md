@@ -7,4 +7,8 @@
 - [x] Local release command ran tests, built, tagged and published the initial release.
 - [x] Source and initial release published; public package/manifest checksums checked.
 - [ ] GitHub Actions end-to-end run (blocked by account-level Actions restriction).
-- [ ] Console hardware checklist completed by a firmware 13.52 tester.
+- [x] Firmware corrected by user to 13.50 / GoldHEN; 0.1.0 installed but failed at launch.
+- [x] Reproduce missing module defect against the original GP4 and extracted package.
+- [ ] Corrected 0.1.1 package extracted, checked, published and uploaded over FTP.
+- [ ] Console launch verified by the firmware 13.50 tester and local boot log.
+- [ ] Remaining download, installer and updater hardware checklist completed.
