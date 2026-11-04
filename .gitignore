@@ -1,0 +1,9 @@
+build/
+dist/
+*.pkg
+*.oelf
+*.elf
+.DS_Store
+.env*
+*.pem
+*.key
