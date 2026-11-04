@@ -1,0 +1,81 @@
+name: Build and release VoyaPS4
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: sudo apt-get update && sudo apt-get install -y g++ make libcurl4-openssl-dev pkg-config
+      - run: python3 tools/verify-deps.py
+      - run: make test
+      - run: make preview
+
+  package:
+    needs: verify
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: /tmp/voyaps4-toolchain.tar.gz
+          key: openorbis-v0.5.4-3c7cd5bb593ca74f
+      - name: Get pinned OpenOrbis toolchain
+        shell: bash
+        run: |
+          if [[ ! -f /tmp/voyaps4-toolchain.tar.gz ]]; then
+            curl --fail --location --retry 3 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.4/toolchain-llvm-18.tar.gz -o /tmp/voyaps4-toolchain.tar.gz
+          fi
+          printf '%s  %s\n' 3c7cd5bb593ca74fa1c13fd59f3938dc0fc07985167f7275063019e63abe4526 /tmp/voyaps4-toolchain.tar.gz | sha256sum --check
+          mkdir -p /tmp/voyaps4-toolchain
+          tar -xzf /tmp/voyaps4-toolchain.tar.gz -C /tmp/voyaps4-toolchain
+      - run: tools/docker-build.sh /tmp/voyaps4-toolchain/OpenOrbis/PS4Toolchain
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: VoyaPS4-package
+          path: dist/
+          if-no-files-found: error
+
+  release:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    needs: package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: VoyaPS4-package
+          path: dist/
+      - name: Publish a new VERSION once, without replacing existing assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          version="$(cat VERSION)"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          if [[ "$GITHUB_REF" == refs/tags/* && "$GITHUB_REF_NAME" != "v$version" ]]; then
+            printf 'Tag and VERSION disagree\n' >&2
+            exit 1
+          fi
+          if gh release view "v$version" >/dev/null 2>&1; then
+            printf 'This version is already published; bump VERSION to release another update.\n'
+            exit 0
+          fi
+          if git rev-parse --verify "refs/tags/v$version" >/dev/null 2>&1; then
+            [[ "$(git rev-parse "v$version^{commit}")" == "$GITHUB_SHA" ]]
+          fi
+          (cd dist && sha256sum --check SHA256SUMS)
+          gh release create "v$version" dist/VoyaPS4.pkg dist/update.json dist/SHA256SUMS \
+            --target "$GITHUB_SHA" --title "VoyaPS4 $version" --notes-file docs/RELEASE-NOTES.md

@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "packages": [
+    {
+      "name": "Apollo Save Tool",
+      "description": "Manage your PS4 save files. Homebrew by bucanero. Version 2.4.0.",
+      "source": "https://github.com/bucanero/apollo-ps4/releases/tag/v2.4.0",
+      "url": "https://github.com/bucanero/apollo-ps4/releases/download/v2.4.0/IV0000-APOL00004_00-APOLLO0000000PS4.pkg",
+      "size": 22806528,
+      "sha256": "ec34add4d2857fa3c947ed5666735a5c35ddb3e47d8be925b36e9ad408f7c090"
+    }
+  ]
+}
