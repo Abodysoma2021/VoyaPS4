@@ -1,0 +1,2 @@
+# Preserve upstream dependency bytes; their checksums are verified in CI.
+vendor/** -whitespace
