@@ -50,3 +50,28 @@ Both pre-package and post-extraction checks passed for the 0.1.1 candidate.
 All 18 transfer/queue integration tests, core assertions and six new package-layout
 tests pass. Startup milestones are recorded in `/data/voyaps4/boot.log` if the console
 loader reaches `main`. On-console launch and the remaining runtime tests are pending.
+
+## 0.1.2 storage startup repair — 2026-11-04
+
+The 0.1.1 console crash trace showed SIGSYS in libkernel `_exit`, reached after
+`main` returned 1. Keeping a diagnostic failure alive exposed the original error:
+`Download folder is not a directory`, after display/font/controller initialization.
+The user observed a fixed black screen in that diagnostic.
+
+Disassembly of the actual linked OpenOrbis 0.5.4 executable proves `lstat` calls
+`fstatat`, which only stores errno 78 (ENOSYS) and returns -1. The upstream
+[PS4 implementation](https://github.com/OpenOrbis/musl/blob/master/src/stat/fstatat.c)
+also explicitly returns ENOSYS. This was an unsupported API, not a missing directory.
+
+The storage regression test forces every `lstat` call to return ENOSYS. Before the
+repair it failed with the exact console message. After replacing those calls with
+`open`/`fstat`/`lseek` and directory opens, it passes, including symlink, FIFO,
+non-directory, missing-file and sparse-file lengths above 5 GiB. All 18 HTTP/queue
+tests, core checks and six package-layout tests also pass on the development Mac.
+Kernel messages are now preformatted, matching the SDK trophies sample.
+
+The repaired native candidate compiled and its package digest/signature and extracted
+runtime-layout checks passed. Symbol inspection confirms neither `lstat` nor
+`fstatat` remains linked; the supported descriptor `fstat` is linked instead.
+
+Console first-frame, downloads, native installation and update acceptance remain pending.

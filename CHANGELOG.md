@@ -2,6 +2,12 @@
 
 ## 0.1.2 — in development
 
+### Fixed
+- Replace unsupported PS4 `lstat`/`fstatat` with descriptor inspection and directory
+  opens. The unsupported call prevented startup after controller initialization.
+- Read local file lengths with 64-bit seek while retaining regular-file and symlink checks.
+- Format kernel diagnostics before passing them to the platform's text export.
+
 ### Changed
 - Send startup milestones and the original error directly to the console's kernel log,
   including failures that prevent creating the local boot log.
@@ -9,7 +15,8 @@
   which the firmware 13.50 crash trace identifies as a SIGSYS failure.
 
 ### Status
-- Diagnostic candidate; the original startup error is still being isolated on the console.
+- Candidate awaiting console launch verification. The first diagnostic's boot log
+  isolated the failure to the download-directory check.
 
 ## 0.1.1 — 2026-11-04
 
@@ -23,7 +30,8 @@
 
 ### Compatibility
 - User clarified the actual target is firmware 13.50 with GoldHEN.
-- Version 0.1.0 installed but was rejected at launch. Version 0.1.1 requires on-console verification.
+- Version 0.1.0 installed but was rejected at launch. Version 0.1.1 reached `main`
+  but exited after the unsupported storage check; the console reported CE-34878-0.
 
 ## 0.1.0 — 2026-11-04
 

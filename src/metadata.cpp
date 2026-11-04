@@ -34,6 +34,10 @@ bool valid_url(const std::string& url, bool https_only) {
            url.find('#')==std::string::npos;
 }
 namespace {
+struct Descriptor {
+    int value;
+    ~Descriptor() {if(value>=0) close(value);}
+};
 std::array<int,3> version_parts(const std::string& text) {
     std::array<int,3> parts{};
     size_t pos=0;
@@ -107,13 +111,20 @@ Item parse_update(const std::string& text, const std::string& current) {
     } catch(const json::exception&) { throw Error("Update manifest is invalid"); }
 }
 uint64_t file_size(const std::string& path) {
-    struct stat st{};
-    if(lstat(path.c_str(),&st)<0) {
+    // OpenOrbis 0.5.4 lstat -> fstatat is an ENOSYS stub. Inspect an opened
+    // descriptor instead; NOFOLLOW rejects links and NONBLOCK avoids FIFO hangs.
+    Descriptor fd{open(path.c_str(),O_RDONLY|O_NOFOLLOW|O_NONBLOCK)};
+    if(fd.value<0) {
         if(errno==ENOENT) return 0;
-        throw Error("Cannot inspect local file");
+        throw Error("Cannot open local file for inspection");
     }
-    if(!S_ISREG(st.st_mode) || st.st_size<0) throw Error("Storage path is not a regular file");
-    return static_cast<uint64_t>(st.st_size);
+    struct stat st{};
+    if(fstat(fd.value,&st)<0) throw Error("Cannot inspect local file");
+    if(!S_ISREG(st.st_mode)) throw Error("Storage path is not a regular file");
+    // Ask the descriptor for its 64-bit length, independent of SDK stat layout.
+    auto length=lseek(fd.value,0,SEEK_END);
+    if(length<0) throw Error("Cannot read local file length");
+    return static_cast<uint64_t>(length);
 }
 std::string read_text(const std::string& path) {
     auto length=file_size(path);
@@ -143,8 +154,8 @@ void atomic_write(const std::string& path, const std::string& text) {
 }
 void make_directory(const std::string& path) {
     if(mkdir(path.c_str(),0700)<0 && errno!=EEXIST) throw Error("Cannot create download folder");
-    struct stat st{};
-    if(lstat(path.c_str(),&st) || !S_ISDIR(st.st_mode)) throw Error("Download folder is not a directory");
+    Descriptor directory{open(path.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW)};
+    if(directory.value<0) throw Error("Cannot open download folder as a directory");
 }
 std::string fetch_text(Http& http, const std::string& url) {
     if(!valid_url(url,true)) throw Error("Catalog and update URLs require HTTPS");

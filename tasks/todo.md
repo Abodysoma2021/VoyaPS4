@@ -9,6 +9,8 @@
 - [ ] GitHub Actions end-to-end run (blocked by account-level Actions restriction).
 - [x] Firmware corrected by user to 13.50 / GoldHEN; 0.1.0 installed but failed at launch.
 - [x] Reproduce missing module defect against the original GP4 and extracted package.
-- [ ] Corrected 0.1.1 package extracted, checked, published and uploaded over FTP.
+- [x] Corrected 0.1.1 package extracted, checked, published and uploaded over FTP.
+- [x] Isolate subsequent startup error from console boot log and linked SDK disassembly.
+- [x] Reproduce unsupported `lstat` failure and pass storage regression after repair.
 - [ ] Console launch verified by the firmware 13.50 tester and local boot log.
 - [ ] Remaining download, installer and updater hardware checklist completed.

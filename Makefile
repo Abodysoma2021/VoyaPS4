@@ -8,8 +8,12 @@ host: build/test-driver
 build/test-driver: $(CORE) src/platform/http_curl.cpp tests/driver.cpp src/core.hpp src/library.hpp vendor/json.hpp VERSION
 	@mkdir -p build
 	$(CXX) $(HOST_FLAGS) $(CORE) src/platform/http_curl.cpp tests/driver.cpp $(CURL_FLAGS) -o $@
-test: host
+build/storage-check: src/metadata.cpp src/sha256.cpp tests/storage.cpp src/core.hpp vendor/json.hpp VERSION
+	@mkdir -p build
+	$(CXX) $(HOST_FLAGS) -Dlstat=voya_unavailable_lstat src/metadata.cpp src/sha256.cpp tests/storage.cpp -o $@
+test: host build/storage-check
 	./build/test-driver
+	python3 -c 'import subprocess,tempfile; directory=tempfile.TemporaryDirectory(); subprocess.run(["./build/storage-check",directory.name],check=True,timeout=10)'
 	python3 tests/integration.py
 	python3 tests/package_layout.py
 ps4:

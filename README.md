@@ -6,8 +6,9 @@ your queue across relaunches.
 
 **Firmware 13.50 / GoldHEN validation in progress.** Version 0.1.0 installed but failed
 at launch; inspection found required OpenOrbis module stubs missing. Version 0.1.1
-includes them and checks the contents of the final extracted package. Launch verification
-is still pending. Native package builds and host transfer tests pass. This is
+includes them, but console testing exposed a subsequent unsupported storage API
+and CE-34878-0. The 0.1.2 candidate replaces that API and awaits console launch testing.
+Native package builds and host transfer tests pass. This is
 an independent project with an original interface, not an affiliated Gamebato client.
 
 ![VoyaPS4 library preview](docs/screenshots/library.png)

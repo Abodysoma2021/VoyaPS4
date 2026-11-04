@@ -23,14 +23,20 @@ namespace {
 void boot_trace(const char* stage,const char* message=nullptr,bool reset=false) {
     // Match the SDK trophies sample: channel 0 is visible through GoldHEN's klog server.
     // Emit before filesystem work so sandbox/storage failures remain observable.
-    sceKernelDebugOutText(0,"[VoyaPS4 %s] stage=%s error=%s\n",VOYA_VERSION,stage,message?message:"");
+    // This export accepts text; its SDK variadic declaration does not format it.
+    char diagnostic[640];
+    snprintf(diagnostic,sizeof(diagnostic),"[VoyaPS4 %s] stage=%s error=%.400s\n",VOYA_VERSION,stage,message?message:"");
+    sceKernelDebugOutText(0,diagnostic);
     static const long started=static_cast<long>(time(nullptr));
     int created=mkdir("/data/voyaps4",0700);
-    if(created<0 && errno!=EEXIST)
-        sceKernelDebugOutText(0,"[VoyaPS4] boot directory errno=%d\n",errno);
+    if(created<0 && errno!=EEXIST) {
+        snprintf(diagnostic,sizeof(diagnostic),"[VoyaPS4] boot directory errno=%d\n",errno);
+        sceKernelDebugOutText(0,diagnostic);
+    }
     int fd=open("/data/voyaps4/boot.log",O_WRONLY|O_CREAT|O_NOFOLLOW|(reset?O_TRUNC:O_APPEND),0600);
     if(fd<0) {
-        sceKernelDebugOutText(0,"[VoyaPS4] boot log open errno=%d\n",errno);
+        snprintf(diagnostic,sizeof(diagnostic),"[VoyaPS4] boot log open errno=%d\n",errno);
+        sceKernelDebugOutText(0,diagnostic);
         return;
     }
     FILE* output=fdopen(fd,"a");
@@ -178,7 +184,9 @@ int main() {
         int pad=scePadOpen(user,0,0,nullptr);require(pad,"Cannot open controller");
         boot_trace("controller_ready");
         make_directory("/data/voyaps4");
+        boot_trace("storage_ready");
         auto catalog=parse_catalog(read_text("/app0/assets/catalog.json"));
+        boot_trace("catalog_ready");
         Library library("/data/voyaps4",catalog,make_http());
         boot_trace("library_ready");
         uint32_t previous=0;std::string confirm_id;
