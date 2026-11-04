@@ -87,6 +87,17 @@ that release. Version tags are also supported. The updater accepts only HTTPS as
 under this repository's versioned release path with mandatory size and SHA-256.
 It relies on TLS and your GitHub release account, not an independent signing key.
 
+GitHub rejected the initial workflow run because Actions is disabled for this account.
+Until that account restriction is resolved, publish a new version from a clean main
+checkout using the same tested local builder:
+
+```sh
+tools/publish-release.sh /absolute/path/to/OpenOrbis/PS4Toolchain
+```
+
+This runs tests, builds and validates the package, pushes main, tags the current source,
+and uploads the release assets. Bump VERSION first. Existing releases are never replaced.
+
 ## Develop
 
 Host tests need a C++17 compiler, Python 3, make and libcurl development headers:
@@ -108,8 +119,9 @@ tools/docker-build.sh /absolute/path/to/OpenOrbis/PS4Toolchain
 
 The Docker image isolates the legacy packaging runtime. Output is `dist/VoyaPS4.pkg`,
 `dist/update.json` and `dist/SHA256SUMS`. CI pins/verifies the SDK archive and vendored
-dependencies. CI assigns a monotonic SFO build version; the app displays the semantic
-VERSION. Publish each VERSION once. [Sources](docs/SOURCES.md),
+dependencies. The SFO build number derives from the source commit history, so keep
+main's history append-only. The app displays the semantic VERSION. Publish each VERSION
+once. [Sources](docs/SOURCES.md),
 [third-party licenses](docs/THIRD-PARTY.md), [console checklist](docs/CONSOLE-TESTING.md).
 
 GPL-3.0-or-later. See LICENSE.

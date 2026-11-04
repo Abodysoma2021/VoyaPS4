@@ -17,8 +17,10 @@
   produced PKG, passed every `PkgTool.Core pkg_validate` digest/signature check.
 - Vendored dependency checksums, shell syntax, workflow YAML and staged whitespace checked.
 
-The GitHub workflow repeats tests and package validation on the published source.
-The live workflow/release page is the authority for its current result.
+GitHub rejected the initial workflow dispatch with HTTP 422: "Actions has been
+disabled for this user." Repository Actions permissions are enabled, so this is an
+account restriction. The initial release uses the verified local builder and release
+script. The committed workflow can repeat these checks when Actions is available.
 
 **Not verified:** physical PS4 launch, IME/controller behavior, native SceHttp TLS and
 timeouts, native installation, and the full on-console update cycle on firmware 13.52.

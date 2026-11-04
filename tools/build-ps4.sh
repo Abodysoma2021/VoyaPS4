@@ -35,9 +35,10 @@ cp "$sdk/samples/hello_world/sce_sys/about/right.sprx" "$out/package/sce_sys/abo
 pkgtool="$sdk/bin/linux/PkgTool.Core"
 export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 "$pkgtool" sfo_new "$out/package/sce_sys/param.sfo"
-# SFO version is monotonic across CI builds; semantic version is compiled into the app.
-# A release rebuild requires a new tag/version. Local development defaults to 01.00.
-app_ver="$(python3 -c 'import os; n=100+int(os.environ.get("GITHUB_RUN_NUMBER","0")); assert 100<=n<10000; print("%02d.%02d"%(n//100,n%100))')"
+# SFO version comes from the source history, so local and CI builds agree.
+# Keep main's history append-only; a release rebuild requires a new VERSION.
+build_number="${VOYA_BUILD_NUMBER:-$(git rev-list --count HEAD)}"
+app_ver="$(python3 -c 'import sys; n=100+int(sys.argv[1]); assert 100<n<10000; print("%02d.%02d"%(n//100,n%100))' "$build_number")"
 set_sfo() { "$pkgtool" sfo_setentry "$out/package/sce_sys/param.sfo" "$1" --type "$2" --maxsize "$3" --value "$4"; }
 set_sfo APP_TYPE Integer 4 1
 set_sfo APP_VER Utf8 8 "$app_ver"
