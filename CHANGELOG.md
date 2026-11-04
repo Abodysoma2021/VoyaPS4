@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.2 — in development
+
+### Changed
+- Send startup milestones and the original error directly to the console's kernel log,
+  including failures that prevent creating the local boot log.
+- Keep a failed startup alive for inspection instead of returning into musl `_exit`,
+  which the firmware 13.50 crash trace identifies as a SIGSYS failure.
+
+### Status
+- Diagnostic candidate; the original startup error is still being isolated on the console.
+
 ## 0.1.1 — 2026-11-04
 
 ### Fixed

@@ -8,6 +8,7 @@
 #include <orbis/VideoOut.h>
 #include <orbis/libkernel.h>
 #include <algorithm>
+#include <cerrno>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -20,10 +21,18 @@ using namespace voya;
 namespace {
 // Latest launch only, bounded to startup milestones; no URLs, catalog data or credentials.
 void boot_trace(const char* stage,const char* message=nullptr,bool reset=false) {
+    // Match the SDK trophies sample: channel 0 is visible through GoldHEN's klog server.
+    // Emit before filesystem work so sandbox/storage failures remain observable.
+    sceKernelDebugOutText(0,"[VoyaPS4 %s] stage=%s error=%s\n",VOYA_VERSION,stage,message?message:"");
     static const long started=static_cast<long>(time(nullptr));
-    mkdir("/data/voyaps4",0700);
+    int created=mkdir("/data/voyaps4",0700);
+    if(created<0 && errno!=EEXIST)
+        sceKernelDebugOutText(0,"[VoyaPS4] boot directory errno=%d\n",errno);
     int fd=open("/data/voyaps4/boot.log",O_WRONLY|O_CREAT|O_NOFOLLOW|(reset?O_TRUNC:O_APPEND),0600);
-    if(fd<0) return;
+    if(fd<0) {
+        sceKernelDebugOutText(0,"[VoyaPS4] boot log open errno=%d\n",errno);
+        return;
+    }
     FILE* output=fdopen(fd,"a");
     if(!output) {close(fd);return;}
     fprintf(output,"{\"event\":\"ps4_startup\",\"entry_point\":\"ps4_app\",\"run_id\":\"%ld-%ld\",\"version\":\"%s\",\"stage\":\"%s\"",
@@ -158,6 +167,7 @@ int main() {
     setvbuf(stdout,nullptr,_IONBF,0);
     boot_trace("entered_main",nullptr,true);
     try {
+        boot_trace("opening_display");
         Display display;boot_trace("display_ready");
         Canvas canvas("/app0/assets/fonts/SpaceGrotesk.ttf");boot_trace("font_ready");
         View view;Keyboard keyboard;
@@ -244,6 +254,8 @@ int main() {
     } catch(const std::exception& e) {
         boot_trace("failed",e.what());
         printf("VoyaPS4 startup failed: %s\n",e.what());
-        return 1;
+        // On this console musl exit -> libkernel _exit raised SIGSYS. Keep the
+        // diagnosable failed process alive until the user closes it with the PS menu.
+        for(;;) sceKernelUsleep(250000);
     }
 }
